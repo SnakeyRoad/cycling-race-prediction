@@ -1,0 +1,92 @@
+# CURSOR PROMPT – Cycling-big data-cleaning notebook finaliser
+# --------------------------------------------------------
+
+## 1.  Emoji policy
+- Remove **all** Unicode emoji.
+- Replace with plain-ASCII equivalents only when the emoji carries semantic value
+  (e.g. “✅” → “[OK]”, “❌” → “[ERR]”, “⚠️” → “[WARN]”).
+- Otherwise simply delete.
+
+## 2.  Cell numbering & captions
+- Insert an explicit `"cell_type": "markdown"` cell **directly above every code cell**.
+- Content must be **exactly one line** starting with a running number and a verb:
+  “`## 3. Load race results from SQLite`”.
+- Do **not** duplicate explanations inside the notebook; keep them for the README.
+
+## 3.  CRISP-DM ordering check
+check if the notebook flow follows:
+1. Business Understanding  
+2. Data Understanding  
+3. Data Preparation (this notebook)  
+4. Modelling (ready for next repo)  
+5. Evaluation (placeholder comments)  
+6. Deployment (placeholder comments)  
+Flag any mis-ordering before proceeding or changing code or markdown.
+
+## 4.  Output CSV validation (mandatory code cell)
+Insert a **final** code cell that loads:
+- `train_clean.csv`
+- `val_clean.csv`  
+- `test_clean.csv`
+
+and asserts **all** of the following:
+
+| Check |                Expected |
+|-------|               ----------|
+| No missing values     | `df.isnull().sum().sum() == 0` |
+| Target dtype          | `np.int8` or `bool` |
+| Target values         | `{0, 1}` only |
+| Numeric feats         | `np.float32` or `float64` |
+| Categorical feats     | `category` or `uint8` codes |
+| No negative ranks     | `rank >= 0` |
+| UCI points cap        | `0 ≤ uci_points ≤ 80` |
+| BMI bounds            | `19 ≤ BMI ≤ 25` |
+| Age bounds            | `19 ≤ age ≤ 45` |
+| Time-split integrity  | `max(train.year) < min(val.year) ≤ max(val.year) < min(test.year)` |
+| Row counts            | match executive summary |
+| Duplicate rows        | `0` (rider_id + race_id + rank) |
+
+If any assert fails, raise `AssertionError` with **one-line** message.
+
+## 5.  Imputation audit
+Print a short summary:
+```
+Imputation summary
+------------------
+Method: <IMPUTATION_METHOD>
+Features imputed: <list>
+Total cells imputed: <int>
+% of total matrix: <float> %
+```
+Store this as `imputation_audit.json` in the same folder.
+
+## 6.  README section injection
+Append **exactly** the following markdown to `README.md` (create if absent):
+
+```markdown
+## Data-cleaning audit
+See `imputation_audit.json` for details.  
+The cleaned files pass all modelling-ready checks listed in the notebook.
+```
+
+Then paste the **“Executive summary interpretation”** table (from the previous review) under that heading.
+
+## 7.  Edge-case coverage
+- Handle `rider_id` == `None` or empty string → drop row.  
+- Handle `Date` column missing or unparseable → drop row.  
+- Handle negative or zero `Length` → set to `NaN` then impute.  
+- Handle `Rank` == `'DNF'`, `'OTL'`, `'DNS'` → drop row.  
+- Ensure no integer stored as string (e.g. `'30'` vs `30`) after export.
+
+## 8.  Ask before you code
+If any of the following is unclear, **ask me** before writing code:
+- Business rules that contradict the checks above  
+- Desired train/val/test year splits  
+- Additional domain constraints  
+- Output file naming convention  
+- Whether to keep or discard the raw SQLite ingestion cell
+
+Proceed only when all questions are resolved.
+--------------------------------------------------------
+END OF PROMPT
+--------------------------------------------------------

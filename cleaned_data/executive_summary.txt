@@ -1,0 +1,33 @@
+CYCLING DATA CLEANING - EXECUTIVE SUMMARY
+==================================================
+
+Generated: 2025-10-22 16:34:54
+
+KEY METRICS:
+--------------------
+Raw rows: 225,918
+Final rows: 211,494
+Data reduction: 6.4%
+Features: 42
+Feature density: 0.02%
+Top-30 %: 20.4%
+Class balance: 0.796 vs 0.204
+Missing before: 571,772
+Missing after: 857,610
+Missing reduction: -50.0%
+Imputation method: knn
+Historical years: 3
+Outlier threshold: 3
+Train samples: 75,964
+Val samples: 16,056
+Test samples: 28,241
+Numeric features: 17
+Categorical features: 30
+Memory usage: 380.5 MB
+
+INSIGHTS:
+--------------------
+Data reduction: 6.4%
+Missing value reduction: -50.0%
+Class balance: 20.4% top-30 riders
+Feature richness: 42 features
