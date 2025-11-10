@@ -1,27 +1,31 @@
 ================================================================================
-CYCLING RACE PREDICTION - ML PROJECT REPOSITORY
+BOOSTME: CYCLING RACE PREDICTION - ML PROJECT
 ================================================================================
 
-Project: ML Prediction of Top 30 Finishers in Cycling Races
-Team Members: Chris, David, Youri, Iris, Christian
-Date: October-November 2025
+Project: Machine Learning Prediction of UCI Point-Earning Race Finishes
+Team: Youri van der Meulen, David Fernandez Santamonica, 
+      Christian Mol, Iris Walraven Bartolome
+Date: November 2025
 Course: Machine Learning (MA01)
+Institution: Zuyd University
+GitHub: https://github.com/SnakeyRoad/cycling-race-prediction
 
 ================================================================================
-OVERVIEW
+PROJECT OVERVIEW
 ================================================================================
 
-This repository contains a complete machine learning pipeline for predicting
-whether professional cyclists will finish in the top 30 positions of races,
-which determines UCI point eligibility. The project follows CRISP-DM methodology
-and includes data cleaning, preprocessing, multiple modeling approaches, and
-comprehensive evaluation.
+CAICLE, an investment firm building a professional cycling super team, requires
+AI-powered models to predict race performance for talent recruitment. This project
+develops multiple machine learning models to identify riders likely to earn UCI
+points through strong race finishes, enabling data-driven recruitment decisions.
 
-Target Variable: 
-  - 1 = Top 30 finish (earns UCI points)
-  - 0 = Outside top 30
+Business Goal: Predict which cyclists will finish in top 30 positions (UCI points)
+Research Question: How can ML models predict cycling performance from historical data?
+Approach: CRISP-DM methodology with emphasis on data preparation, modeling, and evaluation
 
-Dataset: Professional cycling race results from 2017-2021 (~125,000 records)
+Dataset: 225,918 race results from 2012-2021 → 120,261 usable records (2017-2021)
+Target: Binary classification (UCI point-earning finish vs non-earning)
+Class Distribution: 20.4% point-earning, 79.6% non-earning
 
 ================================================================================
 REPOSITORY STRUCTURE
@@ -29,368 +33,292 @@ REPOSITORY STRUCTURE
 
 cycling-race-prediction/
 │
-├── README.txt                          # This file
-├── cycling_big.db                      # SQLite database with raw race data
+├── README.txt                              # This file
+├── cycling_big.db                          # SQLite database (raw data)
 │
-├── CLEANED_DATA/                       # Preprocessed datasets ready for modeling
-│   ├── cleaned_data_2017.csv          # 2017 data (~26,700 rows, 18 features)
-│   ├── cleaned_data_2018.csv          # 2018 data (~24,400 rows, 18 features)
-│   ├── cleaned_data_2019.csv          # 2019 data (~24,800 rows, 18 features)
-│   ├── cleaned_data_2020.csv          # 2020 data (~16,000 rows, 18 features)
-│   └── cleaned_data_2021.csv          # 2021 data (~28,200 rows, 18 features)
+├── CLEANED_DATA/                           # Preprocessed datasets
+│   ├── cleaned_data_2017.csv              # 26,698 rows, 18 features
+│   ├── cleaned_data_2018.csv              # 24,417 rows, 18 features
+│   ├── cleaned_data_2019.csv              # 24,849 rows, 18 features
+│   ├── cleaned_data_2020.csv              # 16,056 rows, 18 features (pandemic)
+│   └── cleaned_data_2021.csv              # 28,241 rows, 18 features
 │
-├── DATA_CLEANING/                      # Data preprocessing pipeline
-│   └── cycling_preprocessing.ipynb    # Complete preprocessing notebook
+├── DATA_CLEANING/
+│   └── cycling_preprocessing.ipynb        # Complete preprocessing pipeline
 │
-└── MODELS/                             # Machine learning models by team members
-    ├── catboost_cycling_model.ipynb   # CatBoost gradient boosting (Chris)
-    ├── lightgbm_finetuning.ipynb      # LightGBM hyperparameter tuning
-    ├── ANN_MODELLING.ipynb            # Artificial Neural Network approach
-    └── model_comparison.ipynb         # Comparative analysis of all models
-
-Total: ~125,000 training examples across 5 years
-
-================================================================================
-DATA FILES
-================================================================================
-
-1. CYCLING_BIG.DB (SQLite Database)
------------------------------------
-Contains raw race results from 2012-2021 including:
-- race_results table: Stage-by-stage results
-- rider_infos table: Rider physical stats and specialties
-- Missing: 2013 data (never collected)
-
-2. CLEANED_DATA FILES (CSV Format)
-----------------------------------
-Each year's CSV contains 18 columns:
-- 1 target variable (binary classification)
-- 17 features (numeric, preprocessed)
-- No missing values
-- Ready for machine learning
-- Memory-efficient float16 format
-
-See "DATASET STRUCTURE" section below for detailed column descriptions.
+└── MODELS/
+    ├── catboost_cycling_model.ipynb       # CatBoost (best: 80.94% ROC-AUC)
+    ├── lightgbm_finetuning.ipynb          # LightGBM (82.3% balanced accuracy)
+    ├── ANN_MODELLING.ipynb                # Neural networks (10 architectures)
+    ├── model_comparison.ipynb             # Multi-model comparison
+    ├── random_forest_advanced.pkl         # Trained Random Forest
+    ├── xgboost.pkl                        # Trained XGBoost
+    └── complete_prediction_pipeline.py    # Production pipeline
 
 ================================================================================
-NOTEBOOKS
+KEY FINDINGS
 ================================================================================
 
-DATA_CLEANING/
---------------
+BEST MODELS:
+1. CatBoost: 80.94% test ROC-AUC, 73.7% recall, 62.3% F1 → Comprehensive scouting
+2. LightGBM: 82.3% balanced accuracy, 77.1% recall → Fast retraining
+3. XGBoost: 87.2% ROC-AUC → Production stability
 
-cycling_preprocessing.ipynb
-- Complete preprocessing pipeline from raw data to clean CSVs
-- Handles missing 2013 data (excludes 2016 accordingly)
-- Creates historical performance features (3-year lookback)
-- Imputes missing values, one-hot encodes categoricals
-- Produces 5 cleaned CSV files (2017-2021)
-- Includes validation checks and documentation
+OTHER APPROACHES:
+- Random Forest: 72% balanced accuracy, 50.9% recall → High interpretability
+- Logistic Regression: 82.1% ROC-AUC → Transparent, explainable
+- Neural Networks: Best F1 59.6% → Promising for future rich data
 
-MODELS/
--------
+FEATURE IMPORTANCE (All Models):
+1. GC (General Classification position) - Dominant predictor
+2. sumres_1 (Previous year UCI points) - Recent performance
+3. UCI World Ranking - Professional standing
+4. PCS Ranking - Alternative ranking system
 
-catboost_cycling_model.ipynb 
-- CatBoost gradient boosting implementation
-- Temporal train/validation/test split (2017-2019/2020/2021)
-- Feature importance analysis
-- Performance: 80.94% ROC-AUC, 81.98% accuracy on test set
-- Handles class imbalance with balanced weights
-- Key finding: GC position and sumres_1 are most predictive features
-
-lightgbm_finetuning.ipynb
-- LightGBM implementation with hyperparameter optimization
-- Grid search or Bayesian optimization approach
-- Comparison with CatBoost performance
-- Feature engineering experiments
-
-ANN_MODELLING.ipynb
-- Artificial Neural Network approach using deep learning
-- Architecture exploration (layers, neurons, activation functions)
-- Dropout and regularization for overfitting prevention
-- Comparison with tree-based methods
-
-model_comparison.ipynb
-- Comprehensive comparison across all modeling approaches
-- Performance metrics: accuracy, ROC-AUC, precision, recall, F1
-- Feature importance across different models
-- Ensemble method exploration
-- Final model selection and justification
+Key Insight: Recent form and tactical positioning matter more than physical attributes
 
 ================================================================================
-DATASET STRUCTURE
+DATA PREPARATION HIGHLIGHTS
 ================================================================================
 
-Each cleaned CSV file contains 18 columns:
+TEMPORAL DATA SPLITTING (Critical for preventing leakage):
+- Training: 2017-2019 (75,964 records)
+- Validation: 2020 (16,056 records)
+- Test: 2021 (28,241 records)
 
-TARGET VARIABLE:
-- target (int): 1 if rider finished in top 30, else 0
+Initial random splitting inflated ROC-AUC to ~0.82 (data leakage)
+Proper temporal splitting reduced to realistic ~0.81 (true generalization)
 
-FEATURES (17 total):
+WHY 2016 IS EXCLUDED:
+Historical features require 3-year lookback (sumres_1, sumres_2, sumres_3)
+For 2016: Need 2015✓, 2014✓, 2013✗ (MISSING from database)
+Decision: Exclude 2016 to maintain complete, consistent features
 
-Race Context:
-- GC (float): General Classification position (most important feature)
-- Age (float): Rider's age
-- Length (float): Race stage length in km
-- Stage_Type_RR (float): 1 if road race, 0 otherwise (one-hot encoded)
-
-Physical Attributes:
-- height (float): Rider height in meters
-- weight (float): Rider weight in kg
-
-Specialty Scores (career performance by race type):
-- One day races (float): Points from one-day races
-- GC_specialty (float): Points from general classification races
-- Time trial (float): Points from time trials
-- Sprint (float): Points from sprint stages
-- Climber (float): Points from climbing stages
-
-Rankings:
-- PCS Ranking (float): ProCyclingStats ranking
-- UCI World Ranking (float): UCI official ranking
-- Specials | All Time Ranking (float): All-time ranking
-
-Historical Performance (3-year lookback):
-- sumres_1 (float): Total UCI points earned previous year (highly predictive)
-- sumres_2 (float): Total UCI points earned 2 years ago
-- sumres_3 (float): Total UCI points earned 3 years ago
-
-Class Distribution: ~21% top 30 finishers, ~79% outside top 30
+PREPROCESSING PIPELINE:
+- 571,772 initial missing values → KNN imputation (k=5) → 0 missing
+- JSON parsing for specialty scores (85% recovery rate)
+- Outlier detection (Z>3): 99 flagged, 12 corrected
+- Feature reduction: 43 raw features → 18 final features
+- Dropped sumres_2 and sumres_3 (no added predictive value beyond sumres_1)
 
 ================================================================================
-WHY 2016 IS EXCLUDED (CRITICAL INFORMATION)
+DATASET STRUCTURE (18 Features)
 ================================================================================
 
-Historical features require 3 years of previous race data:
-- sumres_1: Points earned in previous year (Y-1)
-- sumres_2: Points earned 2 years ago (Y-2)
-- sumres_3: Points earned 3 years ago (Y-3)
+TARGET:
+- target: 1 if UCI point-earning finish, 0 otherwise
 
-For 2016 predictions:
-- sumres_1 needs 2015 data ✓ (available)
-- sumres_2 needs 2014 data ✓ (available)
-- sumres_3 needs 2013 data ✗ (MISSING - never collected)
+RACE CONTEXT (4 features):
+- GC: General Classification position (most important)
+- Age: Rider age
+- Length: Stage length (km)
+- Stage_Type_RR: Binary road race indicator
 
-Investigation confirmed that 2013 data does not exist in cycling_big.db.
-Without 2013 data, every rider in 2016 would have incomplete historical features.
+PHYSICAL (2 features):
+- height: Rider height (m)
+- weight: Rider weight (kg)
 
-Decision: Exclude 2016 to maintain data quality and feature consistency.
-Impact: Lose ~25,000 rows but gain complete, reliable features across all years.
+SPECIALTY SCORES (5 features):
+- One day races, GC_specialty, Time trial, Sprint, Climber
+
+RANKINGS (3 features):
+- PCS Ranking, UCI World Ranking, All Time Ranking
+
+HISTORICAL PERFORMANCE (1 feature after ablation):
+- sumres_1: Total UCI points from previous year
+(Note: sumres_2 and sumres_3 removed after showing no predictive improvement)
 
 ================================================================================
-DATA QUALITY CHECKS PERFORMED
+MODEL RECOMMENDATIONS
 ================================================================================
 
-✓ Removed riders with team = "noteam"
-✓ Filtered out non-numeric ranks (DNF, OTL, DNS, etc.)
-✓ Converted Length from "118.5 km" string to numeric 118.5
-✓ Parsed JSON-like strings in rider_infos (pps and rdr columns)
-✓ Merged rider information with race results
-✓ Calculated 3-year historical performance features
-✓ Imputed missing values with column means
-✓ Dropped rows with critical missing data
-✓ Created binary target variable (top 30 threshold)
-✓ One-hot encoded categorical variables (Stage_Type)
-✓ Validated no missing values in final datasets
-✓ Converted to float16 for memory efficiency
+TIERED IMPLEMENTATION STRATEGY:
+
+Use CatBoost/LightGBM when:
+- Comprehensive talent scouting (maximize candidate identification)
+- High recall is critical (can't miss potential talent)
+- Fast retraining needed
+
+Use Random Forest when:
+- Explaining predictions to non-technical stakeholders
+- Interpretability > maximum performance
+- Stakeholder communication is priority
+
+Use Logistic Regression when:
+- Legally defensible decisions required
+- Regulatory compliance needs explainability
+- Resource-constrained scenarios
+
+Use XGBoost when:
+- Production-grade stability needed
+- System integration is priority
+- Extensive community support valuable
+
+================================================================================
+LIMITATIONS & FUTURE WORK
+================================================================================
+
+CURRENT LIMITATIONS:
+- Heavy dependence on in-race features (GC) limits pre-race prediction
+- Class imbalance produces false positives requiring human screening
+- 2020 validation may be unreliable (pandemic disruptions)
+- Model excludes team dynamics, tactics, course profiles
+
+CRITICAL IMPROVEMENTS (Aligned with CAICLE's Vision):
+1. Integrate physiological metrics:
+   - FTP (Functional Threshold Power)
+   - Power output (watts/kg)
+   - Heart rate, cadence, elevation gain
+   → Better predictors than placement history alone
+
+2. Expand to amateur talent pools:
+   - Outstanding riders often emerge from lower leagues
+   - BoostMe platform: Free AI training for performance data
+   → Unique data advantage over competitors
+
+3. Technical enhancements:
+   - Ensemble methods (combine multiple models)
+   - External data (team strength, weather, head-to-head)
+   - Web application for scout accessibility
+
+4. Human-AI collaboration:
+   - Augment (not replace) human scouts
+   - Assess intangibles: leadership, team chemistry
+   - Balance quantitative + qualitative insights
+
+================================================================================
+EVALUATION METHODOLOGY
+================================================================================
+
+PRIMARY METRICS (Imbalanced Classification):
+- ROC-AUC: Discriminative ability (ranking point-earning vs non-earning)
+- Recall (Class 1): Proportion of actual point-earners identified
+- F1-Score (Class 1): Balance of precision and recall
+- Balanced Accuracy: Account for class distribution
+
+WHY NOT SIMPLE ACCURACY:
+With 79.6% non-earning riders, a model predicting "no" for everyone achieves
+79.6% accuracy but identifies 0% of talent → Useless for business
+
+BALANCED ACCURACY LIMITATION:
+Equal weighting (50% each class) misaligns with business needs where missing
+talent (false negatives) costs more than wasted scouting (false positives)
+→ Prioritize recall and F1 over balanced accuracy for deployment
 
 ================================================================================
 TECHNICAL SPECIFICATIONS
 ================================================================================
 
-Development Environment:
-- OS: Linux Mint
-- IDE: VSCodium
-- Python: 3.12.8 (virtual environment)
-- Git: SSH authentication for GitHub
+Development:
+- Python 3.12.8 in virtual environment
+- Linux Mint, VSCodium IDE
+- Git SSH authentication
 
-Required Packages:
-- pandas: Data manipulation
-- numpy: Numerical operations
-- scikit-learn: ML utilities and metrics
-- catboost: Gradient boosting (primary model)
-- lightgbm: Alternative gradient boosting
-- tensorflow/keras: Neural network implementation
-- matplotlib/seaborn: Visualization
-- jupyter: Notebook environment
+Key Libraries:
+- pandas, numpy: Data manipulation
+- scikit-learn: ML utilities, metrics
+- catboost, lightgbm, xgboost: Gradient boosting
+- tensorflow/keras: Neural networks
+- matplotlib, seaborn: Visualization
 
-Hardware:
-- HP EliteBook 840 G8 Notebook PC
-
-Processing Time:
-- Full preprocessing pipeline: ~2 minutes
-- CatBoost training: ~30 seconds per fold
-- Memory usage: ~500MB peak
-
-File Sizes:
-- cycling_big.db: ~180MB (SQLite database)
-- Each cleaned CSV: ~1.5MB (float16 compression)
-- Total repository: ~190MB
+Processing Performance:
+- Full preprocessing: ~2 minutes
+- CatBoost training: ~13 seconds
+- Memory: ~380MB peak
 
 ================================================================================
-TROUBLESHOOTING
+BUSINESS INTERPRETATION
 ================================================================================
 
-1. DATA LOADING ISSUES
-   - Ensure you're in the repository root directory
-   - Use relative paths: 'CLEANED_DATA/cleaned_data_2019.csv'
-   - Check file exists with: ls CLEANED_DATA/
+From CAICLE's perspective:
+- 74-81% recall captures most point-earning riders
+- High-recall models (CatBoost, LightGBM) for broad candidate screening
+- High-precision models (Random Forest) for confident final selections
+- Recent performance (sumres_1) best indicates future success
+- Threshold tuning balances false positives vs missed talent
 
-2. MISSING VALUES ERROR
-   - All cleaned CSVs have no missing values
-   - If you see NaN, check your data loading code
-   - Verify correct CSV file name and path
-
-3. MEMORY ISSUES
-   - Data uses float16 to minimize memory
-   - Load one year at a time if needed
-   - Close other applications during model training
-
-4. CLASS IMBALANCE
-   - Target naturally imbalanced (21% vs 79%)
-   - Use class_weight='balanced' in sklearn models
-   - Use scale_pos_weight in CatBoost/LightGBM
-   - Consider stratified sampling for validation
+Model Portfolio Enables:
+- Comprehensive talent identification (high recall)
+- Confident recruitment decisions (high precision)
+- Explainable predictions (interpretable models)
+- Flexible deployment (speed vs performance trade-offs)
 
 ================================================================================
-TEAM RESPONSIBILITIES
+ACADEMIC DELIVERABLE
 ================================================================================
 
-
-- CatBoost gradient boosting implementation
-- Feature importance analysis
-- Temporal validation strategy
-- Performance: 80.94% ROC-AUC, 81.98% accuracy
-
-
-- Project requirements and analysis guidance
-- Correlation analysis and outlier detection coordination
-- Quality assurance and methodology validation
-
-
-- Alternative modeling approaches (Logistic Regression, Time Series)
-- Model comparison contributions
-- Name matching tasks
-
-
-- Data preprocessing pipeline
-- Historical feature engineering
-- Data quality validation and documentation
-
-================================================================================
-NEXT STEPS & FUTURE WORK
-================================================================================
-
-1. MODEL OPTIMIZATION
-   - Hyperparameter tuning (careful of overfitting)
-   - Feature selection based on importance analysis
-   - Ensemble methods combining multiple models
-
-2. ANALYSIS DEEPENING
-   - Correlation matrix and multicollinearity analysis
-   - Outlier detection and treatment
-   - Feature interaction exploration
-
-3. REPORT PREPARATION
-   - Results section completion (3 subsections, 1.5 pages each)
-   - Model comparison tables and visualizations
-   - Academic writing with strict 10-page limit
-   - Professional formatting (narrow margins, compact style)
-
-4. POTENTIAL IMPROVEMENTS
-   - Include team-level features (team strength, budget)
-   - Weather conditions if available
-   - Race-specific difficulty ratings
-   - Rider injury history
-
-================================================================================
-PROJECT DELIVERABLES
-================================================================================
-
-Academic Report Structure:
-1. Introduction
-2. Methodology (CRISP-DM)
-3. Results
-   3.1 Data Preparation (~1.5 pages)
-   3.2 Modelling (~1.5 pages)
-   3.3 Evaluation (~1.5 pages)
-4. Discussion
-5. Conclusion
+Extended Abstract Structure:
+1. Introduction: Business context, research question
+2. Method: CRISP-DM, team approach, temporal validation
+3. Results:
+   3.1 Data Preparation: Cleaning, features, temporal splitting
+   3.2 Modeling: Multiple approaches (gradient boosting, neural networks)
+   3.3 Evaluation: Metrics, optimization, business interpretation
+4. Conclusion: Model diversity, recommendations, future work
 
 Constraints:
-- Total: 10 pages maximum
-- Narrow margins, compact formatting
-- Professional academic style
-- Comprehensive but concise
-
-Repository Contents:
-✓ Clean, well-documented code
-✓ Preprocessed datasets ready for modeling
-✓ Multiple modeling approaches
-✓ Comprehensive README documentation
-✓ Reproducible results
+- Emphasis on interpretability and business context
+- Multiple models for different scenarios (not single "best")
+- Model quality = discriminative ability + precision + recall + efficiency
+- Success defined by business needs, not just statistical metrics
 
 ================================================================================
-REFERENCES & DATA SOURCES
+REFERENCES
 ================================================================================
 
-Data Source: ProCyclingStats (via web scraping)
-Database: SQLite (cycling_big.db)
-Methodology: CRISP-DM (Cross-Industry Standard Process for Data Mining)
-Version Control: GitHub (https://github.com/SnakeyRoad/cycling-race-prediction)
+GitHub Repository: https://github.com/SnakeyRoad/cycling-race-prediction
 
-Course: Machine Learning MA01
-Institution: ADSAI
-Academic Year: 2025-2026
+Academic Sources:
+[1] J. Schmidhuber, "Deep Learning in Neural Networks," arXiv:1404.7828, 2014
+[2] Z. Zhu et al., "Robustness in deep learning," arXiv:2209.07263, 2022
+[3] C. Hettinger, "Hyperparameters for Dense Networks," BYU M.S. thesis, 2019
+[4] N. Phelps et al., "Challenges learning from imbalanced data," arXiv:2412.16209, 2024
+
+Data Source: ProCyclingStats (via SQLite database)
+Methodology: CRISP-DM framework
 
 ================================================================================
-CONTACT INFORMATION
+TEAM CONTRIBUTIONS
 ================================================================================
 
-For questions about:
-- Preprocessing: Christian (cpm)
-- CatBoost modeling: Chris
-- Project coordination: David
-- Other models: David, Youri, Iris
+Startup Approach: All members contributed across phases rather than fixed roles
 
-Repository: https://github.com/SnakeyRoad/cycling-race-prediction
-Project Directory: /home/cpm/Desktop/ML_PROJECT/
+Supervisors: M. Vaessen, J. Baljan, B. Kroon, K. Manjari
 
 ================================================================================
 VERSION HISTORY
 ================================================================================
 
 v2.0 - November 2025
-- Complete repository restructure with organized folders
-- Added all team modeling notebooks (CatBoost, LightGBM, ANN, comparison)
-- Included cycling_big.db SQLite database
-- Updated documentation with model results and findings
-- Prepared for final academic report submission
+- Complete multi-model implementation (CatBoost, LightGBM, XGBoost, RF, ANN)
+- Extended abstract with comprehensive results
+- Business-focused recommendations and tiered deployment strategy
+- Future work aligned with BoostMe platform vision
 
 v1.0 - October 2025
-- Initial preprocessing pipeline created
-- 5 years of cleaned data (2017-2021)
-- Basic documentation and validation
-- Ready for team modeling phase
+- Initial preprocessing pipeline
+- 5 years cleaned data (2017-2021)
+- Temporal validation strategy
+- Ready for modeling phase
 
 ================================================================================
-LICENSE & ACADEMIC INTEGRITY
+CONTACT & SUPPORT
 ================================================================================
 
-This project is submitted as part of coursework for Machine Learning MA01.
-All code and analysis are original work by the team members listed above.
-Data sourced from publicly available ProCyclingStats website.
+- Individual team members can be reached via their university e-mail
+- Any questions can be asked during presentation or panel discussion
 
-For academic use only. Not for commercial distribution.
+Repository: https://github.com/SnakeyRoad/cycling-race-prediction
+Course: Machine Learning MA01, Zuyd University
 
 ================================================================================
-ACKNOWLEDGMENTS
+LICENSE
 ================================================================================
 
-- Team Members: Chris, David, Youri, Iris, Christian
-- Data Source: ProCyclingStats
-- Course Instructors: [MA01 Teaching Team]
-- Development Tools: Python, scikit-learn, CatBoost, Jupyter
+Academic project for Machine Learning MA01 coursework
+Original work by team members (Youri, David, Christian, Iris)
+Data from publicly available ProCyclingStats
+For educational use only
 
 ================================================================================
 END OF DOCUMENTATION
